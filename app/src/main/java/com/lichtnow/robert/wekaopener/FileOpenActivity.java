@@ -11,39 +11,50 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+
+import udc.edu.weka.classifiers.Classifier;
+
 
 public class FileOpenActivity extends AppCompatActivity {
 
-    protected String fileContent = "";
+    protected Button loadBtn = null;
+    protected Classifier cls = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_file_open);
+        this.loadBtn = this.findViewById(R.id.loadBtn);
 
-        int permissionCheck = ContextCompat.checkSelfPermission(FileOpenActivity.this,
-                Manifest.permission.READ_EXTERNAL_STORAGE);
-        if(permissionCheck == PackageManager.PERMISSION_DENIED){
-            ActivityCompat.requestPermissions(FileOpenActivity.this,
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    123);
-        }
+        this.loadBtn.setOnClickListener((View v) -> {
+            int permissionCheck = ContextCompat.checkSelfPermission(FileOpenActivity.this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE);
+            if(permissionCheck == PackageManager.PERMISSION_DENIED){
+                ActivityCompat.requestPermissions(FileOpenActivity.this,
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        123);
+            }
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("*/*");
+            try{
+                startActivityForResult(intent, 123);
 
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("*/*");
-        try{
-            startActivityForResult(intent, 123);
-
-        } catch (ActivityNotFoundException e){
-            Toast.makeText(FileOpenActivity.this, "There are no file explorer clients installed.", Toast.LENGTH_SHORT).show();
-        }
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(FileOpenActivity.this, "There are no file explorer clients installed.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
@@ -51,22 +62,14 @@ public class FileOpenActivity extends AppCompatActivity {
                                            String permissions[], int[] grantResults) {
         switch (requestCode) {
             case 123: {
-                // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-                    // permission was granted, yay!
-
                 } else {
-                    Toast.makeText(FileOpenActivity.this, "BOOOOOO ALLOW ME TO READ", Toast.LENGTH_SHORT).show();
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
+                    Toast.makeText(FileOpenActivity.this, "Para selecionar o arquivo, deve ser permitida a leitura do disco interno", Toast.LENGTH_SHORT).show();
                 }
                 return;
             }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
         }
     }
 
@@ -77,34 +80,32 @@ public class FileOpenActivity extends AppCompatActivity {
             case 123:
                 if (resultCode == RESULT_OK) {
                     String filePath = data.getData().getPath().split(":")[1];
-                    Log.d("FilePath",filePath);
-                    this.fileContent = getFileContent(filePath);
-                    Log.d("FileContent:",this.fileContent);
-
-                    //TODO aqui eu vou iniciar a próxima tela
-                    //TODO refatorar classe para conter botão que abre browser de arquivos
+                    this.cls = loadClassifier(filePath);
+//
+//                    Intent clsActivity = new Intent(this, ClassificadorActivity.class);
+//                    clsActivity.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//                    startActivity(clsActivity);
                 }
         }
     }
 
-    public String getFileContent(String filePath){
-        StringBuilder str = new StringBuilder();
-        BufferedReader br;
+    public Classifier loadClassifier(String filePath){
+        File dir = Environment.getExternalStorageDirectory();
+        filePath = new File(dir + File.separator + filePath).getAbsolutePath();
+        Classifier cls = null;
         try{
-            File dir = Environment.getExternalStorageDirectory();
-            File file = new File(dir + File.separator + filePath);
-            br = new BufferedReader(new FileReader(file));
-            String line = "";
-            while((line = br.readLine()) != null) {
-                str.append(line);
-                str.append("\n");
-            }
-            br.close();
+            FileInputStream file = new FileInputStream(filePath);
+            ObjectInputStream in = new ObjectInputStream(file);
+            cls = (Classifier) in.readObject();
+            Toast.makeText(FileOpenActivity.this,"Carreguei o arquivo",Toast.LENGTH_SHORT).show();
         }
         catch(Exception ex){
-            Log.d("ExceptionDoFileContent:",ex.getMessage());
-            return "";
+            Toast.makeText(FileOpenActivity.this,"Não foi possível ler o arquivo",Toast.LENGTH_SHORT).show();
         }
-        return str.toString();
+        return cls;
     }
+
+
+
+
 }
