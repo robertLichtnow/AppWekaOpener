@@ -22,6 +22,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.Serializable;
 
 import udc.edu.weka.classifiers.Classifier;
 
@@ -81,6 +82,10 @@ public class FileOpenActivity extends AppCompatActivity {
                 if (resultCode == RESULT_OK) {
                     String filePath = data.getData().getPath().split(":")[1];
                     this.cls = loadClassifier(filePath);
+
+                    Intent clsActivity = new Intent(this, ClassifierActivity.class);
+                    clsActivity.putExtra("cls",(Serializable)this.cls);
+                    startActivity(clsActivity);
 //
 //                    Intent clsActivity = new Intent(this, ClassificadorActivity.class);
 //                    clsActivity.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
