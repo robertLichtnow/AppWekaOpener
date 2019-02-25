@@ -2,25 +2,19 @@ package com.lichtnow.robert.wekaopener;
 
 import android.Manifest;
 import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 
@@ -86,10 +80,6 @@ public class FileOpenActivity extends AppCompatActivity {
                     Intent clsActivity = new Intent(this, ClassifierActivity.class);
                     clsActivity.putExtra("cls",(Serializable)this.cls);
                     startActivity(clsActivity);
-//
-//                    Intent clsActivity = new Intent(this, ClassificadorActivity.class);
-//                    clsActivity.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-//                    startActivity(clsActivity);
                 }
         }
     }
