@@ -2,10 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/AppWekaOpener.iml" filepath="$PROJECT_DIR$/AppWekaOpener.iml" />
-      <module fileurl="file://$PROJECT_DIR$/WekaAttriGen/WekaAttriGen.iml" filepath="$PROJECT_DIR$/WekaAttriGen/WekaAttriGen.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/AppWekaOpener.iml" filepath="$PROJECT_DIR$/.idea/AppWekaOpener.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/weka/weka.iml" filepath="$PROJECT_DIR$/weka/weka.iml" />
     </modules>
   </component>
 </project>
