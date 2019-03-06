@@ -1,6 +1,8 @@
 package com.lichtnow.robert.wekaopener;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.InputType;
@@ -15,6 +17,9 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +33,10 @@ public class ClassifierActivity extends AppCompatActivity {
 
     protected LinearLayout camposList = null;
     protected Classifier cls = null;
+    protected String fileName = "";
+    protected String filePath = "";
     protected TextView modelNameTxt = null;
+    protected TextView fileNameTxt = null;
     private TextWatcher tw = null;
 
     @Override
@@ -43,16 +51,30 @@ public class ClassifierActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_classifier);
-        this.cls = (Classifier) getIntent().getSerializableExtra("cls");
+
+        this.cls = this.loadClassifier(getIntent().getStringExtra("cls"));
+        if(cls == null){
+            finish();
+        }
+        this.filePath = getIntent().getStringExtra("cls");
+        this.fileName = getIntent().getStringExtra("file");
 
         if(this.cls == null){
             Toast.makeText(ClassifierActivity.this, "Não foi possível ler o modelo", Toast.LENGTH_SHORT).show();
+            finish();
         }
 
         this.camposList = this.findViewById(R.id.camposInput);
         this.modelNameTxt = this.findViewById(R.id.modelNameTxt);
+        this.fileNameTxt = this.findViewById(R.id.fileNameTxt);
         this.modelNameTxt.setText(this.cls.getClass().getSimpleName());
+        this.fileNameTxt.setText(this.fileName);
 
+        this.loadAtributos();
+
+    }
+
+    private void loadAtributos(){
         List<Attribute> atributos = this.cls.getAttributes();
         for(int i=0;i<atributos.size();i++){
             if(cls.getClassIndex() != i) {
@@ -133,6 +155,13 @@ public class ClassifierActivity extends AppCompatActivity {
                             DenseAttribute attr = new DenseAttribute();
                             attr.setType(AttributeType.NUMERIC);
                             EditText et = (EditText)this.camposList.getChildAt(i);
+                            if(et.getText().toString().trim().equals("")){
+                                et.requestFocus();
+                                TextView nomeCampo = (TextView)this.camposList.getChildAt(i-1);
+                                String nome = nomeCampo.getText().toString();
+                                Toast.makeText(ClassifierActivity.this, "Campo " + nome + " vazio", Toast.LENGTH_SHORT).show();
+                                return false;
+                            }
                             double valor = Double.parseDouble(et.getText().toString());
                             attr.setNumericalValue(valor);
                             attrs.add(attr);
@@ -140,13 +169,36 @@ public class ClassifierActivity extends AppCompatActivity {
                     }
                     DenseInstance ins = new DenseInstance(1,(DenseAttribute[])attrs.toArray(new DenseAttribute[attrs.size()]),this.cls);
                     DenseAttribute classe = this.cls.classifyInstance(ins);
-                    //TODO ao invés de um TOAST, mandar para outra página para visualização dos resultados
-                    Toast.makeText(ClassifierActivity.this, classe.getNominalValue(), Toast.LENGTH_SHORT).show();
+
+                    double resultados[] = cls.distributionForInstance(ins);
+
+                    Intent resultActivity = new Intent(this, ResultActivity.class);
+                    resultActivity.putExtra("resultados",resultados);
+                    resultActivity.putExtra("file",this.filePath);
+                    startActivity(resultActivity);
+
                 }catch(Exception ex){
                     Toast.makeText(ClassifierActivity.this, ex.getMessage(), Toast.LENGTH_SHORT).show();
                 }
                 return true;
             default: return super.onOptionsItemSelected(item);
         }
+    }
+
+
+
+    private Classifier loadClassifier(String filePath){
+        File dir = Environment.getExternalStorageDirectory();
+        filePath = new File(dir + File.separator + filePath).getAbsolutePath();
+        Classifier cls = null;
+        try{
+            FileInputStream file = new FileInputStream(filePath);
+            ObjectInputStream in = new ObjectInputStream(file);
+            cls = (Classifier) in.readObject();
+        }
+        catch(Exception ex){
+            Toast.makeText(ClassifierActivity.this,"Não foi possível ler o arquivo",Toast.LENGTH_SHORT).show();
+        }
+        return cls;
     }
 }

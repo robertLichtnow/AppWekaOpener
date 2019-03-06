@@ -24,7 +24,6 @@ import udc.edu.weka.classifiers.Classifier;
 public class FileOpenActivity extends AppCompatActivity {
 
     protected Button loadBtn = null;
-    protected Classifier cls = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,30 +74,17 @@ public class FileOpenActivity extends AppCompatActivity {
             case 123:
                 if (resultCode == RESULT_OK) {
                     String filePath = data.getData().getPath().split(":")[1];
-                    this.cls = loadClassifier(filePath);
+
 
                     Intent clsActivity = new Intent(this, ClassifierActivity.class);
-                    clsActivity.putExtra("cls",(Serializable)this.cls);
+                    clsActivity.putExtra("cls",filePath);
+                    clsActivity.putExtra("file",filePath.split("/")[filePath.split("/").length-1]);
                     startActivity(clsActivity);
                 }
         }
     }
 
-    public Classifier loadClassifier(String filePath){
-        File dir = Environment.getExternalStorageDirectory();
-        filePath = new File(dir + File.separator + filePath).getAbsolutePath();
-        Classifier cls = null;
-        try{
-            FileInputStream file = new FileInputStream(filePath);
-            ObjectInputStream in = new ObjectInputStream(file);
-            cls = (Classifier) in.readObject();
-            Toast.makeText(FileOpenActivity.this,"Carreguei o arquivo",Toast.LENGTH_SHORT).show();
-        }
-        catch(Exception ex){
-            Toast.makeText(FileOpenActivity.this,"Não foi possível ler o arquivo",Toast.LENGTH_SHORT).show();
-        }
-        return cls;
-    }
+
 
 
 
